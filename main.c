@@ -2,161 +2,125 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <linkedList.h>
+#include <ctype.h>
 
-// Coding challenge by:
-// Ayax Casarrubias - A01337426
-// Alejandro Olivares - A01337525
+void load(node_t **list) {
+  FILE * stream = fopen("dataC.csv", "r");
+  char line[1024];
 
-struct node {
-    int age;
-    char * name;
-    struct node *next;
-};
-typedef struct node node_t;
+  while (fgets(line, 1024, stream)) {
+    char *name = (char *) malloc(10 * sizeof(char));
+    strcpy(name, strtok(line, ","));
+    int age = 0;
+    age = atoi(strtok(NULL, ""));
+    add(age, name, list);
+  }
+  free(stream);
+} 
 
-void iterateOver(node_t *list) {
-    node_t * temp = list;
+void printNamesWithGiven(node_t *list) {
+  char letter;
+  printf("Which letter would you like to use?\n");
+  scanf("%s", &letter);
+
+  node_t * temp = list;
+  
+  printf("[");
+  while(temp != NULL) {
+    char *name = temp->name;
     
-    printf("[");
-    while(temp != NULL) {
-        printf("%d %s,", temp->age, temp-> name);
-        printf(" ");
+    if(tolower(letter) == tolower(name[0])) {
+      printf("%s\n", name);
+    }
+
+    temp = temp->next;
+  }
+  printf("]\n");
+}
+
+void getOldest(node_t **list){
+		node_t * temp = *list;
+		int max = 0;
+		node_t *ans = *list;
+    int size = getSizeOf(*list);
+		for(int i = 0; i < size; i++){
+      //printf("new Min test");
+				if (temp->age < max)
+				{
+					max = temp->age;
+					ans = temp;
+				}
         temp = temp->next;
-    }
-    printf("]\n");
+		}
+		printf("Oldest: %d %s \n",ans->age,ans->name );
 }
 
-void add(int age, char * name, node_t **list) {
-    node_t *newNode = (node_t *) malloc(sizeof(node_t));
-    newNode->age = age;
-    newNode->name = name;
-    newNode->next = NULL;
-    
-    if(*list == NULL) {
-        *list = newNode;
-    } else {
-        node_t * temp = *list;
-        // Iterate to the end of the list.
-        while(temp->next != NULL) {
-            temp = temp->next;
-        }
-        
-        // Add the node to the end.
-        temp->next = newNode;
-    }
-}
-
-void push(int age, char * name, node_t **list) {
-    node_t *listHead = (node_t *) malloc(sizeof(node_t));
-    listHead->age = age;
-    listHead->name = name;
-    listHead->next = NULL;
-    
-    listHead->next = *list;
-    *list = listHead;
-    iterateOver(*list);
-}
-
-void popFirstFrom(node_t **list) {
-    node_t * temp = *list;
-    
-    if(temp != NULL) {
-        free(*list);
-        *list = temp->next;
-    }
-    
-    iterateOver(*list);
-}
-
-void popLastFrom(node_t **list) {
-    node_t * temp = *list;
-    
-    while(temp->next->next != NULL) {
+void getYoungest(node_t **list){
+		node_t * temp = *list;
+		int min = 10000;
+		node_t *ans = *list;
+    int size = getSizeOf(*list);
+		for(int i = 0; i < size; i++){
+      //printf("new Min test");
+				if (temp->age < min)
+				{
+					min  = temp->age;
+					ans = temp;
+				}
         temp = temp->next;
-    }
-    
-    temp-> next = NULL;
-    iterateOver(*list);
+		}
+		printf("Youngest: %d %s \n",ans->age,ans->name );
 }
 
-void getSizeOf(node_t *list) {
-    int i = 0;
-    node_t * temp = list;
-    while(temp != NULL) {
-        i++;
-        temp = temp->next;
-    }
-    printf("Size of the list is equal to: %d \n", i);
+void getAverage(node_t ** theList){
+  node_t *one = (node_t *)malloc(sizeof(node_t));
+  one = *theList;  
+  int sum = 0;
+  int size = getSizeOf(*theList);
+  for(int x=0; x < size;x++){
+    sum=sum + one -> age;
+    one = one -> next;
+  }
+  sum= sum/ size;
+  printf("The average of ages is %d \n",sum);
 }
-
-// Works by removing the node at the `.position`.
-void removeSpecific(int  position, node_t **list) {
-    node_t * temp = *list;
-    if(*list == NULL){ //In case the list is empty
-        return ;
-    }
-    
-    for(int x=2; x <= position; x++) {
-        temp = temp->next;
-        
-    }
-    
-    node_t *next = temp->next->next;
-    free(temp->next);
-    temp -> next = next;
-    iterateOver(*list);
-}
-
-// Works by retrieving the node at the `.position`.
-void getNodeOf(node_t **list, int  poSee) {
-    node_t * temp = *list;
-    if(*list == NULL){
-        return ;
-    }
-    for(int x =0;x<= poSee;x++){
-        if (x == poSee) {
-            printf("[ %d %s", temp ->age, temp -> name);
-            printf("] \n");
-        }
-        temp = temp -> next;
-    }
-}
-
-void clear(node_t **list) {
-    node_t * temp;
-    while((*list)->next != NULL) {
-        temp = *list;
-        *list = (*list)->next;
-        free(temp);
-    }
-    // `.free()` does not set the value of the pointer to NULL,
-    // but the memory pointed to is no longer valid (does not contain a live node)
-    // A good practice here is to set the node to NULL
-    free(*list);
-    *list = NULL; // Now everything is freed 😬
-}
-
 
 int main(void) {
-    node_t * list = NULL;
-    int  position, poSee;
-    
-    add(50, "Johnny", &list);
-    add(25, "Giorgio", &list);
-    add(45, "JOJO", &list);
-    iterateOver(list);
-    
-    push(20, "Mia", &list);
-    popLastFrom(&list);
-    popFirstFrom(&list);
-    getSizeOf(list);
-    printf("Which node would you like to see? \n" );
-    scanf("%d", &poSee);
-    getNodeOf( &list, poSee);
-    printf("Which node would you like to remove? \n" );
-    scanf("%d", &position);
-    removeSpecific(position, &list);
-    clear(&list);
-    getSizeOf(list);
-    return 0;
+  node_t *list = NULL;
+  load(&list);
+  
+  int choice;
+  do {
+    printf("Menu\n\n");
+    printf("0. Print the linked list\n");
+    printf("1. Print the oldest person\n");
+    printf("2. Print the youngest person\n");
+    printf("3. Print the average of all ages\n");
+    printf("4. Print all names that start with a given letter\n");
+    printf("5. Exit\n");
+    scanf("%d",&choice);
+    switch(choice) {
+      case 0: 
+        iterateOver(list);
+        break;
+      case 1: 
+        getOldest(&list);
+        break;
+      case 2: 
+        getYoungest(&list);
+        break;
+      case 3: 
+        getAverage(&list);
+        break;
+      case 4:
+        printNamesWithGiven(list);
+        break;
+      case 5:
+        printf("Goodbye");
+        break;
+    }
+  } while (choice != 5);
+
+  return 0;
 }
